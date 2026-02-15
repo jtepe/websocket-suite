@@ -22,10 +22,6 @@ ptest TEST:
 build:
     cargo build
 
-# execute synchronous client with specific wss URL
-run-sync-client URL:
-    cargo run -p synchronous-client {{URL}}
-
 # generate sign-signed certificate in cert.pem
 genkey:
     cargo run -p genkey

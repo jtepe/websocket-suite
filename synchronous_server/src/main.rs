@@ -4,34 +4,27 @@ use std::sync::Arc;
 use tungstenite::{Message, accept};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = std::env::args();
-    if args.len() < 2 {
-        return Err("please provide at least the port to listen on".into());
-    }
+    let cert_path = std::env::var("CERT_PATH").unwrap();
+    let key_path = std::env::var("KEY_PATH").unwrap();
 
     println!("adding server certificate to certstore ...");
-    let cert_chain = CertificateDer::pem_file_iter("cert.pem")
-        .expect("certificate file cert.pem in valid PEM format")
+    let cert_chain = CertificateDer::pem_file_iter(cert_path)
+        .expect("certificate file in valid PEM format")
         .map(|cert| cert.expect("valid PEM certificate"))
         .collect();
     println!("add server private key file ...");
-    let key = PrivateKeyDer::from_pem_file("key.pem")
-        .expect("private key file key.pem in valid PEM format");
+    let key = PrivateKeyDer::from_pem_file(key_path).expect("private key file in valid PEM format");
 
     let server_config = rustls::ServerConfig::builder()
         .with_no_client_auth()
         .with_single_cert(cert_chain, key)
         .expect("TLS server config from certificate and key file");
 
-    let port = args
-        .skip(1)
-        .next()
-        .unwrap()
-        .parse::<u16>()
-        .expect("valid port number passed as argument");
-
-    let host_port = format!("localhost:{port}");
+    let port = std::env::var("WS_PORT").unwrap().parse::<u16>()?;
+    let bind_host = std::env::var("WS_BIND").unwrap();
+    let host_port = format!("{bind_host}:{port}");
     println!("starting server on wss://{host_port}");
+
     let listener = TcpListener::bind(host_port)?;
     let (mut tcp_stream, _) = listener.accept()?;
     let mut conn = rustls::ServerConnection::new(Arc::new(server_config))?;

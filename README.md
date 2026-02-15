@@ -33,9 +33,8 @@ Both containers run with `network_mode: host` so that everything is reachable vi
 Environment variables (can be passed via your shell or a `.env` file):
 
 - `SERVER_PORT` (default `3043`) – port the server listens on (host network)
+- `WS_BIND` (default `127.0.0.1`) – server bind address; set to `0.0.0.0` if you want to expose beyond localhost
 - `CLIENT_HOST` (default `localhost`) – host the client connects to
 - `CLIENT_PORT` (default `3043`) – port the client connects to
-- `WS_BIND` (default `127.0.0.1`) – server bind address; set to `0.0.0.0` if you want to expose beyond localhost
-- `CONNECT_RETRIES` / `CONNECT_DELAY_MS` – client connect retry behavior
 
 For proxy testing you typically point the client at your proxy (e.g. `CLIENT_PORT=PROXY_PORT`) and run the server on a different `SERVER_PORT`.

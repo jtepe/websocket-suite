@@ -10,15 +10,19 @@ use tungstenite::protocol::WebSocket;
 use url::{Host, Url};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut args = std::env::args();
-    if args.len() != 2 {
-        return Err("provide the wss URL to connect to".into());
-    }
-    let url: Url = args.nth(1).unwrap().parse()?;
+    let wss_url = std::env::var("WSS_URL").unwrap_or_else(|_| {
+        format!(
+            "wss://{}:{}",
+            std::env::var("WS_HOST").unwrap(),
+            std::env::var("WS_PORT").unwrap()
+        )
+    });
+    let url: Url = wss_url.parse()?;
 
+    let cert_path = std::env::var("CERT_PATH").unwrap();
     println!("adding server certificate to truststore ...");
     let cert =
-        CertificateDer::from_pem_file("cert.pem").expect("certificate file cert.pem in PEM format");
+        CertificateDer::from_pem_file(cert_path).expect("certificate file cert.pem in PEM format");
     let mut roots = RootCertStore::empty();
     roots.add(cert)?;
 
@@ -36,7 +40,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let host_tuple = format!("{}:{}", server_name.to_str(), url.port().unwrap_or(3043));
 
-    let mut sock = TcpStream::connect(&host_tuple).expect("tcp connection established");
+    let connect_retries: usize = std::env::var("CONNECT_RETRIES").unwrap().parse()?;
+    let connect_delay = std::time::Duration::from_millis(
+        std::env::var("CONNECT_DELAY_MS").unwrap().parse::<u64>()?,
+    );
+
+    let mut n = 0;
+    let mut sock = loop {
+        n += 1;
+        if n > connect_retries {
+            return Err(format!("failed to connect after {connect_retries} attempts").into());
+        }
+        match TcpStream::connect(&host_tuple) {
+            Ok(sock) => break sock,
+            Err(e) if matches!(e.kind(), std::io::ErrorKind::ConnectionRefused) => {
+                std::thread::sleep(connect_delay);
+                continue;
+            }
+            Err(e) => panic!("failed to connect: {e}"),
+        }
+    };
+
     let mut conn = ClientConnection::new(Arc::new(client_config), server_name)
         .expect("client connection created");
     let stream = rustls::Stream::new(&mut conn, &mut sock);

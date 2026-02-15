@@ -36,7 +36,5 @@ services:
       # Optional; if set it overrides WS_HOST/WS_PORT.
       # WSS_URL: wss://localhost:3043
       CERT_PATH: /app/cert.pem
-      CONNECT_RETRIES: ${CONNECT_RETRIES:-100}
-      CONNECT_DELAY_MS: ${CONNECT_DELAY_MS:-100}
     volumes:
       - ./cert.pem:/app/cert.pem:ro,Z
