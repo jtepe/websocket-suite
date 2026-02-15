@@ -1,0 +1,7 @@
+[package]
+name = "genkey"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rcgen.workspace = true

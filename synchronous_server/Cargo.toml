@@ -1,0 +1,8 @@
+[package]
+name = "synchronous_server"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+rustls.workspace = true
+tungstenite.workspace = true
