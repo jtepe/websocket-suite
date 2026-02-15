@@ -26,7 +26,7 @@ just compose-up true
 
 Both containers run with `network_mode: host` so that everything is reachable via the host's `localhost` (useful when a proxy runs on the host).
 
-(Internally, `just compose-up` uses `podman compose up --abort-on-container-exit`.)
+(Internally, `just compose-up` uses `podman compose --podman-run-args="--rm" up --abort-on-container-exit` so the containers are automatically removed once they exit.)
 
 ### Configuration
 

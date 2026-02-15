@@ -1,5 +1,5 @@
 services:
-  synchronous_server:
+  server:
     build:
       context: .
       dockerfile: Dockerfile
@@ -18,7 +18,7 @@ services:
       - ./cert.pem:/app/cert.pem:ro,Z
       - ./key.pem:/app/key.pem:ro,Z
 
-  synchronous_client:
+  client:
     build:
       context: .
       dockerfile: Dockerfile
@@ -27,7 +27,7 @@ services:
     restart: "no"
     network_mode: host
     depends_on:
-      - synchronous_server
+      - server
     environment:
       # Where the client connects. By default it connects directly to the server.
       # For proxy testing, point WS_HOST/WS_PORT (or WSS_URL) at your proxy.
@@ -36,5 +36,7 @@ services:
       # Optional; if set it overrides WS_HOST/WS_PORT.
       # WSS_URL: wss://localhost:3043
       CERT_PATH: /app/cert.pem
+      CONNECT_RETRIES: ${CONNECT_RETRIES:-100}
+      CONNECT_DELAY_MS: ${CONNECT_DELAY_MS:-100}
     volumes:
       - ./cert.pem:/app/cert.pem:ro,Z

@@ -35,8 +35,9 @@ clean:
 # Pass BUILD=true to rebuild (e.g. `just compose-up true`).
 # Stops when one of the containers exits (useful for this short-lived test setup)
 compose-up BUILD="false":
+    # Make the containers auto-remove after they exit (podman run --rm)
     if [ "{{BUILD}}" = "true" ] || [ "{{BUILD}}" = "1" ]; then \
-      podman compose up --build --abort-on-container-exit; \
+      podman compose --podman-run-args="--rm" up --build --abort-on-container-exit; \
     else \
-      podman compose up --abort-on-container-exit; \
+      podman compose --podman-run-args="--rm" up --abort-on-container-exit; \
     fi
